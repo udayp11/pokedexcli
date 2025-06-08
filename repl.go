@@ -5,15 +5,23 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/udayp11/pokedexcli/internal/pokeapi"
 )
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config, string) error
+}
+type config struct {
+	pokeapiClient   pokeapi.Client
+	nextLocationURL *string
+	prevLocationURL *string
+	caughtPokemon   map[string]pokeapi.Pokemon
 }
 
-func enterRepl() {
+func enterRepl(cfg *config) {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -30,9 +38,13 @@ func enterRepl() {
 		if !exists {
 			fmt.Println("Unknown command")
 		} else {
-			err := command.callback()
+			area := ""
+			if len(userCmd) > 1 {
+				area = userCmd[1]
+			}
+			err := command.callback(cfg, area)
 			if err != nil {
-				fmt.Errorf("error: %w", err)
+				fmt.Println(err)
 			}
 
 		}
@@ -46,22 +58,7 @@ func cleanInput(text string) []string {
 	return finalStrings
 
 }
-func commandExit() error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
-func commandHelp() error {
 
-	fmt.Println("Welcome to the Pokedex!")
-	fmt.Println("Usage")
-	fmt.Println()
-	for _, cmds := range inputCmd() {
-		fmt.Printf("%v: %v\n", cmds.name, cmds.description)
-	}
-	return nil
-
-}
 func inputCmd() map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
@@ -73,6 +70,36 @@ func inputCmd() map[string]cliCommand {
 			name:        "exit",
 			description: "Exit the Pokedex",
 			callback:    commandExit,
+		},
+		"map": {
+			name:        "map",
+			description: "Display the next 20 Locations",
+			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Display the previous 20 Locations",
+			callback:    commandMapb,
+		},
+		"explore": {
+			name:        "explore",
+			description: "list of all the Pokémon Present in a area",
+			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "Catch the Pokemon by name",
+			callback:    commandCatch,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "Get details of the catched pokemon",
+			callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Get List of all Pokemons caught",
+			callback:    commandPokedex,
 		},
 	}
 }

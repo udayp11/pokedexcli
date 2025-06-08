@@ -14,7 +14,7 @@ func TestCleanInput(t *testing.T) {
 			expected: []string{"hello", "world"},
 		},
 		{
-			input:    " who will win IPL 2024",
+			input:    " who will win IPL 2025",
 			expected: []string{"who", "will", "win", "ipl", "2025"},
 		},
 	}
